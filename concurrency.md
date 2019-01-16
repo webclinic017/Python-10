@@ -65,3 +65,6 @@
 </tr>
 </tbody></table>
 <p></p>
+
+
+[추가 읽을거리](http://hamait.tistory.com/833)(Concurrence in python)
