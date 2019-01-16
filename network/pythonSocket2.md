@@ -4,7 +4,7 @@
     - Multiprocessing
    
         - from threading import Thread
-            - 기본적으로 파이썬의 [`GIL`(global interpreter lock)](https://github.com/minkj1992/Python/tree/master) 이슈 때문에 thread를 사용하는 것은 비추천 되고 있다.
+            - 기본적으로 파이썬의 [`GIL`](https://github.com/minkj1992/Python/tree/master)(global interpreter lock) 이슈 때문에 thread를 사용하는 것은 비추천 되고 있다.
           
         - from multiprocessing import Process
         - from multiprocessing import Pool
