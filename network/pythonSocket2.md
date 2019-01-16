@@ -18,6 +18,9 @@
     - [듀랑고2](https://www.slideshare.net/sublee/lt-vol-2)
     - [듀랑고3](https://www.slideshare.net/sublee/vol-3-95472828)
     
+    - [gevent chat](https://mingkim.github.io/programming/2015/09/27/gevent-%EB%B2%88%EC%97%AD.html)
+    - [전반적인 gevent](http://hamait.tistory.com/756?category=79136) 
+    
 - ZMQ 사용
     - [wireframe의 zmq](https://soooprmx.com/archives/6436)
     -
