@@ -8,4 +8,8 @@
 
 # Sync & Async
 - Concurrence의 핵심 개념은 큰 단위의 task를 한번에 Sync하게 처리하는 대신, 작은 단위의 `subtask`들로 쪼개서 `async`하게 실행하는 것.
-- 두 `subtask`간의 스위칭을 `context-switching`
+- 두 `subtask`간의 스위칭을 `context-switching` 이라한다.
+- @ 여기서 subtask들은 thread들을 말하는 것일까? 아니면 single thread 하위에 subtask들이 있는 것일까? 만약 전자라면 thread들과 greenlet의 차이점은 사용자가 원하는 시점에 context-switching을 할 수 있다는 것이고, 후자라면 greenlet은 thread가 되고 spawn을 통하여서 subtask들을 생산하는 것이다.[thread vs greenlets](https://stackoverflow.com/questions/46528360/why-gevent-needs-synchronization-since-it-is-in-a-single-threaded)
+
+[single thread기반으로 subtasks이 생성되는 것이다.](https://stackoverflow.com/questions/15556718/greenlet-vs-threads)
+
