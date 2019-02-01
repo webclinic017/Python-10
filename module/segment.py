@@ -1,4 +1,5 @@
 # segment each list eqaul value
+# [1,1,2,4,4,5] -> [[1,1],[2],[4,4],[5]]
 def segment(data):
     lookup = {}
     result = []
