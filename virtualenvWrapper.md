@@ -72,32 +72,35 @@
 <br/>
 <div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/00.PNG" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/0.PNG" alt="alt text" width=50%/></div>
+
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/0.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/1.PNG" alt="alt text" width=50%/></div>
+
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/1.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/2.PNG" alt="alt text" width=50%/></div>
+
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/2.png" alt="alt text" width=50%/></div>
 <br/><br/>
 
 - `Vim` 으로 하셔도 상관없는데 visual code로 하면 훨씬 편해서 개인적으로 추천
 
 <div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/3.PNG" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/4.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/4.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/5.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/5.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/6.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/6.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/7.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/7.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/8.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/8.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/9.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/9.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/10.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/10.png" alt="alt text" width=50%/></div>
 <br/><br/>
-<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/11.PNG" alt="alt text" width=50%/></div>
+<div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/11.png" alt="alt text" width=50%/></div>
 <br/><br/>
 <div style="text-align:center; margin-left: auto;margin-right: auto;"><img src="./img/virtualenvWrapper/git/12.PNG" alt="alt text" width=50%/></div>
 <br/><br/>
