@@ -223,7 +223,7 @@ source /c/python/scripts/virtualenvwrapper.sh
 
 > 이것으로 윈도우에서 python,git-bash,가상환경 세팅이 완료 되었어여~~~ 
 전반적인 가상환경 사용법은 [`virtualenvwrapper`](https://beomi.github.io/2016/12/28/HowToSetup-Virtualenv-VirtualenvWrapper/) 에 잘 나와있고, git bash를 사용하니까 ubuntu 명령어 모두 통합적으로 사용할 수 있으므로 linux 파트를 읽어보는 것 추천드립니다. 
-너무 졸림 ㅜㅜ ㅂㅂ 
+q
 
 
 
