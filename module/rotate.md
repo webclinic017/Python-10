@@ -1,6 +1,20 @@
 # roate
 
+# 1d rotate
+## clock-wise
+```python
+def clock(arr,n):
+    n%=len(arr)
+    return arr[len(arr)-n:]+arr[:len(arr)-n]
+```
+## counter-clock-wise
+```python
+def counter_clock(arr,n):
+    n%=len(arr)
+    return arr[n:]+arr[:n]
+```
 
+# 2d rotate
 ## clock-wise
 ```python
 # 2d array board
@@ -36,4 +50,28 @@ def rotate(sy,ey,sx,ex):
             sx+=1
     arr = [row[:] for row in new_arr]
  
+```
+
+## 2d array N-time row rotate
+```python
+def clock(arr,ty,n):
+    global N,M
+    n %= M
+    for y in range(N):
+        if (y+1)%ty == 0:
+            arr[y] = arr[y][M-n:]+arr[y][:M-n]
+
+def counter_clock(arr,ty,n):
+    global N, M
+    n %= M
+    for y in range(N):
+        if (y+1)%ty == 0:
+            arr[y] = arr[y][n:]+arr[y][:n]
+
+# main()
+board = None
+N = M = 0
+with open('tmp.txt','r') as f:
+    N,M = map(int,f.readline().split())
+    board = [list(map(int,f.readline().split())) for _ in range(N)]
 ```
