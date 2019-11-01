@@ -173,16 +173,15 @@ class Trie:
     def starts_with(self,prefix):
         cur_node = self.head
         result = []
-        sub_trie = None
+
 
         for char in prefix:
             if char in cur_node.children:
                 cur_node = cur_node.children[char]
             else:
                 return None
-        else:
-            sub_trie = cur_node
-
+        
+        sub_trie = cur_node
         queue = deque(sub_trie.children.values())
 
         while queue:
