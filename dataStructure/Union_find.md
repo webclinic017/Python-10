@@ -1,5 +1,10 @@
 # Union find
-> == disjoint set
+> disjoint set
+
+- [`참조 소스코드`](https://brownbears.tistory.com/460)
+- [`파이썬 자료구조 Disjoint set`](https://dongchans.github.io/2019/42/)
+- [boj 문제1](http://blog.naver.com/kks227/220791837179)
+- [boj 문제2](https://www.acmicpc.net/workbook/view/900)
 
 ## 1. 배열을 사용하는 방식
 ```
