@@ -42,3 +42,42 @@ print(disjoint.num_group)
 ## 2. Tree를 사용하는 방식
 - union by size
 - union by height
+
+- `by size`
+```python
+class Disjoint_set:
+    def __init__(self,n):
+        # segment size를 포함하는 list
+        # 음수를 가진 녀석이 root, 나머지는 root의 idx를 가리키는 leaf
+        self.data = [-1]*n
+        self.size = n
+
+    def find(self,idx):
+        val = self.data[idx]
+        return idx if val< 0 else val
+
+    def union(self,a,b):
+        print((a,b),self.data)
+        a,b = map(self.find,(a,b))
+        if a == b: return None
+
+        if self.data[a] < self.data[b]:
+            self.data[a] += self.data[b]
+            self.data[b] = a
+        else:
+            self.data[b] += self.data[a]
+            self.data[a] = b
+
+        self.size -= 1
+
+
+
+disjoint = Disjoint_set(10)
+for a,b in zip(range(9),range(1,10)):
+    if a in (3,7):continue
+    disjoint.union(a,b)
+
+disjoint.union(1,5)
+disjoint.union(5,9)
+print(disjoint.data)
+```
