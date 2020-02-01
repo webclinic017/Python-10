@@ -32,7 +32,8 @@ a = 2 # 0000 0010
 b = -a # 1111 1110
 a&b = # 0000 0010
 ```
-- `~a &  -~a`: 최하위 비트 0을 제외하고는 0으로 변한다.
+- `~a &  -~a`==`~a&(a+1)`: 최하위 비트 0을 제외하고는 0으로 변한다.
+
 ```
 a   =   1010 0110
 ~a  =   0101 1001
@@ -45,29 +46,19 @@ a   =   1010 0110
 ## `nCk` with bit operation
 
 ```python
-
-def get_zeros(n):
-    num = 0
-    while ((n&1)==0):
-        num+=1
-        n >>=1
-    return num
-
-def func(bit,n):
-    msb = 1 << (n-1)
-    while(msb):
-        print(bin(msb&bit))
-        msb >>= 1
-
-num = [0]*15
-n,m = map(int,input().split())
-for i in range(n):
-    num[i] = int(input())
-
-bit = (1<<m) -1
-while (bit < (1<<n)):
-    func(bit,n)
-    temp = bit | ((bit & -bit) -1)
-    bit = (temp+1) | (((~temp & -~temp) -1) >> (get_zeros(bit)+1))
-
+def combination(n,m):
+    for i in range(1<<n):
+        comb = []
+        _bin = '{:0{}b}'.format(i,n)
+        for j,b in enumerate(_bin):
+            if b=='0':continue
+            if len(comb)>m:break
+            comb.append(j)
+        else:
+            if len(comb)==m: yield comb
+arr = [1,2,3,4,5]
+for p in [comb for comb in combination(len(arr),3)][::-1]:
+    print([arr[pp] for pp in p])
 ```
+- 순서를 보장.
+- 파이썬이 str(->bin())을 사용해야만 bit masking을 사용할 수 있는 것 같다.
