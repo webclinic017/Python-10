@@ -43,8 +43,34 @@ a   =   1010 0110
 ~a&-~a= 0000 0001
 ```
 
+## 멱집합(powerset, 부분집합)
+> https://blog.naver.com/PostView.nhn?blogId=kmh03214&logNo=221702095617
+```python
+def powerset(s):
+    masks = [1<<i for i in range(len(s))]
+    for i in range(1<<len(s)):
+        yield [ss for ss,mask in zip(s,masks) if mask&i]
+```
+
 ## `nCk` with bit operation
 
+- stack overflow 소스코드(이해하기 어렵)
+```python
+# 모든 combination
+def bitmasks(n,m):
+    if m < n:
+        if m > 0:
+            for x in bitmasks(n-1,m-1):
+                yield (1 << (n-1)) + x
+            for x in bitmasks(n-1,m):
+                yield x
+        else:
+            yield 0
+    else:
+        yield (1 << n) - 1
+```
+
+- 내가 만들어본 비트마스킹을 활용한 조합 코드
 ```python
 def combination(n,m):
     for i in range(1<<n):
@@ -56,6 +82,7 @@ def combination(n,m):
             comb.append(j)
         else:
             if len(comb)==m: yield comb
+            
 arr = [1,2,3,4,5]
 for p in [comb for comb in combination(len(arr),3)][::-1]:
     print([arr[pp] for pp in p])
