@@ -96,3 +96,52 @@ local
 - 이를 사용하여 버전을 3.8-dev다음과 같이 설정할 수 있습니다.
 - 이 명령은 `.python-version`을 현재 디렉토리에 파일을 만듭니다.  
 - pyenv사용자 환경에서 활성이 파일은 당신을 위해이 버전을 자동으로 활성화됩니다.
+
+
+## 가상환경
+
+- pyenv 는 여러 버전의 Python 자체를 관리합니다.
+- virtualenv / venv 는 특정 Python 버전의 가상 환경을 관리합니다.
+- pyenv-virtualenv 는 다양한 버전의 Python에서 가상 환경을 관리합니다.
+
+
+가상환경 생성
+
+    minkj1992@minkj1992-900X5L:~/code/Python/asyncio$ pyenv virtualenv 3.8-dev async-venv
+    Looking in links: /tmp/tmpy_h3fll9
+    Requirement already satisfied: setuptools in /home/minkj1992/.pyenv/versions/3.8-dev/envs/async-venv/lib/python3.8/site-packages (47.1.0)
+    Requirement already satisfied: pip in /home/minkj1992/.pyenv/versions/3.8-dev/envs/async-venv/lib/python3.8/site-packages (20.1.1)
+
+- pyenv의 python version 루트 디렉토리 `/home/minkj1992/.pyenv/versions`에 알맞은 버전안에 가상환경이 생성된다.
+- 나의 경우에는 `<pyenv의 version디렉토리>/3.8-dev/envs/async-venv/`에 지정한 가상환경이 생성됨
+
+
+가상환경 활성화
+
+    pyenv activate async-venv
+
+- 이 경우에는 터미널에서 global하게 가상환경이 잡힌다. 
+- 즉, 해당 디렉토리를 벗어나도 가상환경을 유지한다.
+
+가상환경 비활성화
+
+    pyenv deactivate
+
+해당 디렉토리 가상환경 지정
+
+    pyenv local async-venv
+    
+- 이 경우 `.python-version`자체 내용이 변경된다.
+    - 나의 경우에는 `3.8-dev` -> `async-venv`
+    - 파이썬 버전만 기입되어있던 파일 내용이, 가상환경 이름으로 변경되었다. 
+- 해당 디렉토리에 들어올 경우에 가상환경이 자동으로 활성화 된다.
+- 이 경우 `deactivate`가 작동하지 않는다.
+
+
+가상환경 자동 activate 확인
+
+    (async-venv) minkj1992@minkj1992-900X5L:~/code/Python/asyncio$ cd ..
+    minkj1992@minkj1992-900X5L:~/code/Python$ cd asyncio/
+    (async-venv) minkj1992@minkj1992-900X5L:~/code/Python/asyncio$ 
+
+
