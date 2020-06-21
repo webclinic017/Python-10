@@ -66,6 +66,17 @@ for i in range(11, 21):
 co.send('EXIT')  # 코루틴 accumulate에 EXIT을 보내서 숫자 누적을 끝냄
 ```
 
+
+추가로 3.8 이전까지는 comprehension과 generator expression에서 (yield) expression을 사용가능했지만,
+3.8이후 부터는 nested (yield)가 불가능하다. 아래 코드는 3.8 기준으로는 syntax error가 뜬다. 
+
+```python
+>>> list((yield i) for i in range(5))
+[0, None, 1, None, 2, None, 3, None, 4, None]
+>>> list([(yield i) for i in range(5)])
+[0, 1, 2, 3, 4]
+```
+
 ## `@asyncio.coroutine`의 코루틴 (3.4) 
 
 **Coroutines use the `yield from` syntax introduced in PEP 380, instead of the original `yield` syntax.**
@@ -87,6 +98,62 @@ def coro():
 
 파이썬 3.3에서 asyncio는 pip install asyncio로 asyncio를 설치한 뒤 @asyncio.coroutine 데코레이터와 yield from을 사용하면 됩니다. 
 단, 3.3 미만 버전에서는 asyncio를 지원하지 않습니다.
+
+- async가 아닌 그냥 sync하게 동작하는 coroutine
+```python
+import asyncio
+
+
+@asyncio.coroutine
+def accumulate():
+    print("NEW COROUTINE IS STARTED")
+    total = 0
+    while True:
+        x = (yield)  # 코루틴 바깥에서 값을 받아옴
+        if x == 'EXIT':  # 받아온 값이 EXIT이면 sub coroutine 종료
+            return total
+        total += x
+
+
+@asyncio.coroutine
+def sum_coroutine():
+    while True:
+        print("SUM_COROUTINE")
+        total = yield from accumulate()  # accumulate의 반환값을 가져옴
+        print(total)
+
+
+@asyncio.coroutine
+def main():
+    co = sum_coroutine()
+    next(co) # sum_coroutine 시작
+
+    for i in range(1, 11):  # 1부터 10까지 반복
+        co.send(i)  # 코루틴 accumulate에 숫자를 보냄
+    co.send('EXIT')  # sum_coroutine 시작
+
+    for i in range(11, 21):
+        co.send(i)  # 코루틴 accumulate에 숫자를 보냄
+    co.send('EXIT')  # sum_coroutine 시작
+
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+```
+
+- output
+```bash
+SUM_COROUTINE
+NEW COROUTINE IS STARTED
+55
+SUM_COROUTINE
+NEW COROUTINE IS STARTED
+155
+SUM_COROUTINE
+NEW COROUTINE IS STARTED
+```
+
 
 - `@asyncio.coroutine`
 ```python
@@ -147,9 +214,10 @@ result :  11
 result :  21
 ```
 - 위와 같이 @asyncio에서의 coroutine은 하나의 Thread에서 context switching을 원하는 시점에 할 수 있도록 만들어준다. 
-- 대신 `3.3`에서 처럼 `x = (yield)`의 기능은 하지 못한다. (3.6 부터는 가능)
+- 대신 `3.3`에서 처럼 `x = (yield)`의 기능(= async generator)은 하지 못한다. (3.6 부터는 가능)
 
-다음은 3.6버전에서 async for를 사용한 (yield) 기능 + `native async`을 동시에 구현한 모습이다.
+다음은 3.6버전에서 부터 async for를 사용한 (yield) 기능= `async generator` + `native coroutine`을 동시에 구현할 수 있다.
+
 ```python
 import asyncio
 
@@ -227,9 +295,48 @@ result :  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 result :  [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 ```
 
+물론 이전 버전의 (yield)를 사용하고 싶다면, `@asyncio.coroutine`을 사용하지 않고, `generator`문법만을 사용해서 활용 가능하다.
+
+```python
+def coroutine():
+    print('Starting coroutine')
+    value = (yield)
+    for i in value:
+        yield i
+
+c=coroutine()
+c.send(None)
+print(c.send([1,2,3,4,5]))
+
+
+for val in c:
+    print(val)
+``` 
+
+추가로 3.6 버전에 추가된 [PEP 525](https://www.python.org/dev/peps/pep-0525/#asynchronous-generators)에 따르면 `Asynchronous Generators`가 도입되어
+비동기적으로 `(yield)`를 사용해 input을 기다리는 `await coro.asend(value)`또한 가능하다. 
+
+```python
+async def gen():
+    await asyncio.sleep(0.1)
+    v = yield 42
+    print(v)
+    await asyncio.sleep(0.2)
+
+g = gen()
+
+await g.asend(None)      # Will return 42 after sleeping
+                         # for 0.1 seconds.
+
+await g.asend('hello')   # Will print 'hello' and
+                         # raise StopAsyncIteration
+                         # (after sleeping for 0.2 seconds.)
+```
 
 ## `async def`의 코루틴 (3.5 ~)
 > 네이티브 코루틴의 등장, 이전까지의 코루틴은 `제너레이터 코루틴`이라고 칭한다.
+
+- `native coroutine`은 `async def`을 통해서만 생성된다.
 
 ```python
 import asyncio
@@ -257,3 +364,5 @@ asyncio.run(main())
 ## 추가 읽어볼 거리
 
 - [파이썬의 비동기 IO : 완전한 연습](https://realpython.com/async-io-python/)
+- [PEP 525](https://www.python.org/dev/peps/pep-0525/#asynchronous-generators)
+- [StackOverflow: "Converting from generator-based to native coroutines"](https://stackoverflow.com/questions/58658305/converting-from-generator-based-to-native-coroutines)
