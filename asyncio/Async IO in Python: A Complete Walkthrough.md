@@ -181,6 +181,7 @@ import asyncio
 import random
 import time
 
+
 async def part1(n: int) -> str:
     i = random.randint(0, 10)
     print(f"part1({n}) sleeping for {i} seconds.")
@@ -188,6 +189,7 @@ async def part1(n: int) -> str:
     result = f"result{n}-1"
     print(f"Returning part1({n}) == {result}.")
     return result
+
 
 async def part2(n: int, arg: str) -> str:
     i = random.randint(0, 10)
@@ -197,44 +199,29 @@ async def part2(n: int, arg: str) -> str:
     print(f"Returning part2{n, arg} == {result}.")
     return result
 
+
 async def chain(n: int) -> None:
     start = time.perf_counter()
-    p1 = await part1(n)
+    p1 = await part1(n) # 다 끝날때까지 내려가지 않는다.
     p2 = await part2(n, p1)
     end = time.perf_counter() - start
     print(f"-->Chained result{n} => {p2} (took {end:0.2f} seconds).")
 
-async def main(*args):
-    await asyncio.gather(*(chain(n) for n in args))
+
+async def main(*args) -> None:
+    # def gather(*coros_or_futures) unpacking 해서 주어야한다.
+    await asyncio.gather(*(chain(arg) for arg in args))
+
 
 if __name__ == "__main__":
     import sys
+
     random.seed(444)
     args = [1, 2, 3] if len(sys.argv) == 1 else map(int, sys.argv[1:])
     start = time.perf_counter()
     asyncio.run(main(*args))
     end = time.perf_counter() - start
     print(f"Program finished in {end:0.2f} seconds.")
-```
-
-```
-$ python tmp.py
-part1(1) sleeping for 4 seconds.
-part1(2) sleeping for 4 seconds.
-part1(3) sleeping for 0 seconds.
-Returning part1(3) == result3-1.
-part2(3, 'result3-1') sleeping for 4 seconds.
-Returning part1(1) == result1-1.
-part2(1, 'result1-1') sleeping for 7 seconds.
-Returning part1(2) == result2-1.
-part2(2, 'result2-1') sleeping for 4 seconds.
-Returning part2(3, 'result3-1') == result3-2 derived from result3-1.
--->Chained result3 => result3-2 derived from result3-1 (took 4.00 seconds).
-Returning part2(2, 'result2-1') == result2-2 derived from result2-1.
--->Chained result2 => result2-2 derived from result2-1 (took 8.01 seconds).
-Returning part2(1, 'result1-1') == result1-2 derived from result1-1.
--->Chained result1 => result1-2 derived from result1-1 (took 11.01 seconds).
-Program finished in 11.01 seconds.
 
 ```
 
@@ -259,61 +246,76 @@ Program finished in 11.01 seconds.
 
 ```
 
+`asyncio.gatherㄴ(*aws, loop=None, return_exceptions=False)`
+
+- 결괏값의 순서는 aws에 있는 어웨이터블의 순서와 일치합니다.
+- `return_exceptions`는 default로 `False`이며,  `aws 시퀀스`의 다른 어웨이터블은 취소되지 않고 계속 실행됩니다.
+
 ### Using a Queue
 
 ```python
-#!/usr/bin/env python3
-# asyncq.py
-
 import asyncio
 import itertools as it
 import os
 import random
 import time
 
+
 async def makeitem(size: int = 5) -> str:
     return os.urandom(size).hex()
 
-async def randsleep(a: int = 1, b: int = 5, caller=None) -> None:
+
+async def randsleep(p: int = None, b: int = 5, caller=None) -> None:
     i = random.randint(0, 10)
+    if p is not None:
+        i = p
     if caller:
         print(f"{caller} sleeping for {i} seconds.")
     await asyncio.sleep(i)
 
+
 async def produce(name: int, q: asyncio.Queue) -> None:
     n = random.randint(0, 10)
-    for _ in it.repeat(None, n):  # Synchronous loop for each single producer
-        await randsleep(caller=f"Producer {name}")
+    # range() 사용하지 않는이유? it.repeat(None,n)이 더 빠르다.
+    for _ in it.repeat(None, n):
+        await randsleep(p=0, caller=f"Producer {name}")
         i = await makeitem()
         t = time.perf_counter()
         await q.put((i, t))
         print(f"Producer {name} added <{i}> to queue.")
 
+
 async def consume(name: int, q: asyncio.Queue) -> None:
     while True:
         await randsleep(caller=f"Consumer {name}")
-        i, t = await q.get()
+        i, t = await q.get()  # If queue is empty, wait until an item is available.
         now = time.perf_counter()
         print(f"Consumer {name} got element <{i}>"
-              f" in {now-t:0.5f} seconds.")
+              f" in {now - t:0.5f} seconds.")
         q.task_done()
+
 
 async def main(nprod: int, ncon: int):
     q = asyncio.Queue()
     producers = [asyncio.create_task(produce(n, q)) for n in range(nprod)]
     consumers = [asyncio.create_task(consume(n, q)) for n in range(ncon)]
-    await asyncio.gather(*producers)
-    await q.join()  # Implicitly awaits consumers, too
-    for c in consumers:
+    await asyncio.gather(
+        *producers)  # 모든 생산자가 생산을 마칠때까지 이 항목을 넘어갈 수 없다.(모든 Producer의 생산 보장, 생산을 마친 producer.cancel() 적용)
+    print("Every Producer is Cancelled")
+    await q.join()  # 생산자가 Queue.put해준 모든 item들이 처리가 될때까지 대기해준다.
+    for c in consumers:  # 생산되기를 기다리는 Consumer cancel()
         c.cancel()
+
 
 if __name__ == "__main__":
     import argparse
-    random.seed(444)
+
+    random.seed(443)
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--nprod", type=int, default=5)
     parser.add_argument("-c", "--ncon", type=int, default=10)
     ns = parser.parse_args()
+
     start = time.perf_counter()
     asyncio.run(main(**ns.__dict__))
     elapsed = time.perf_counter() - start
@@ -321,27 +323,176 @@ if __name__ == "__main__":
 ```
 
 ```
-Producer 0 sleeping for 4 seconds.
+Producer 0 sleeping for 0 seconds.
+Producer 1 sleeping for 0 seconds.
 Consumer 0 sleeping for 4 seconds.
-Consumer 1 sleeping for 7 seconds.
+Consumer 1 sleeping for 5 seconds.
 Consumer 2 sleeping for 4 seconds.
-Consumer 3 sleeping for 4 seconds.
-Consumer 4 sleeping for 8 seconds.
-Producer 0 added <f1cfedbead> to queue.
-Producer 0 sleeping for 10 seconds.
-Consumer 0 got element <f1cfedbead> in 0.00031 seconds.
-Consumer 0 sleeping for 7 seconds.
-Producer 0 added <c714f0d0fa> to queue.
-Producer 0 sleeping for 8 seconds.
-Consumer 2 got element <c714f0d0fa> in 0.00014 seconds.
-Consumer 2 sleeping for 4 seconds.
-Producer 0 added <df873d53d6> to queue.
-Producer 0 sleeping for 7 seconds.
-Consumer 3 got element <df873d53d6> in 0.00010 seconds.
 Consumer 3 sleeping for 1 seconds.
-Producer 0 added <7333eaeb62> to queue.
-Consumer 1 got element <7333eaeb62> in 0.00009 seconds.
-Consumer 1 sleeping for 6 seconds.
-Program completed in 29.01826 seconds.
+Consumer 4 sleeping for 4 seconds.
+Producer 0 added <c6d2c88ea9> to queue.
+Producer 0 sleeping for 0 seconds.
+Producer 1 added <d54c2ed91b> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 0 added <36fe862ec3> to queue.
+Producer 1 added <67c90217e5> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <cbfca546cc> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <07e1fa7659> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <6a44169212> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <06c5237c7b> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <17c91b585d> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <e07a11a6bc> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <6b3e82c070> to queue.
+Producer 1 sleeping for 0 seconds.
+Producer 1 added <583fc960a8> to queue.
+Every Producer is Cancelled         --> await asyncio.gather(*producer) is fin 
+Consumer 3 got element <c6d2c88ea9> in 1.00150 seconds.
+Consumer 3 sleeping for 3 seconds.
+Consumer 0 got element <d54c2ed91b> in 4.00300 seconds.
+Consumer 0 sleeping for 1 seconds.
+Consumer 2 got element <36fe862ec3> in 4.00322 seconds.
+Consumer 2 sleeping for 6 seconds.
+Consumer 4 got element <67c90217e5> in 4.00337 seconds.
+Consumer 4 sleeping for 7 seconds.
+Consumer 3 got element <cbfca546cc> in 4.00348 seconds.
+Consumer 3 sleeping for 9 seconds.
+Consumer 1 got element <07e1fa7659> in 5.00186 seconds.
+Consumer 1 sleeping for 7 seconds.
+Consumer 0 got element <6a44169212> in 5.00334 seconds.
+Consumer 0 sleeping for 3 seconds.
+Consumer 0 got element <06c5237c7b> in 8.00663 seconds.
+Consumer 0 sleeping for 7 seconds.
+Consumer 2 got element <17c91b585d> in 10.00629 seconds.
+Consumer 2 sleeping for 0 seconds.
+Consumer 2 got element <e07a11a6bc> in 10.00646 seconds.
+Consumer 2 sleeping for 5 seconds.
+Consumer 4 got element <6b3e82c070> in 11.00492 seconds.
+Consumer 4 sleeping for 10 seconds.
+Consumer 1 got element <583fc960a8> in 12.00228 seconds.
+Consumer 1 sleeping for 3 seconds.
+Program completed in 12.00375 seconds.
 
 ```
+
+코드들에 대해 설명을 하자면,
+
+`i, t = await q.get()`는 queue가 비워져 있다면, wait until an item is available. 한다.
+
+`Queue.join()`은 모든 생산된 task가 비워질때까지 기다려준다.
+
+`await asyncio.gather(*producers)`은 모든 producer가 생산을 마칠때까지 await해준다. 즉 생산을 완료하기 전까진 아래 코드로 진행될 수 없다.
+그렇기 때문에 위의 소스코드에서 Producer에 wait을 0을 주어, 실험해보았고 예상과 같은 결과가 도출되었다.
+ 
+ 
+**추가적으로 range()보다 itertools를 사용해 for 도는 것이 더 빠르다**는 새로운 사실을 배웠다. 
+
+```python
+for _ in itertools.repeat(None, 10000):
+    do_something()
+```
+This is faster than:
+```python
+for i in range(10000):
+    do_something().
+```
+The former wins because all it needs to do is update the reference count for the existing None object. The latter loses because the range() or xrange() needs to manufacture 10,000 distinct integer objects.
+
+
+## `async for`
+> `Async Generators + Comprehensions`
+
+`async for`은 iterator이다.
+The purpose of an asynchronous iterator is for it to be able to call asynchronous code at each stage when it is iterated over.
+
+해당 개념의 확장은 `asynchronous generator`이다. 
+Using yield within a coroutine became possible in Python 3.6 (via PEP 525), 
+which introduced `asynchronous generators` with the purpose of allowing await and yield to be used in the same coroutine function body:
+
+```python
+import asyncio
+
+
+async def mygen(u: int = 10):
+    """Yield powers of 2."""
+    i = 0
+    while i < u:
+        yield 2 ** i
+        i += 1
+        print(i, "now sleep")
+        await asyncio.sleep(0.1)
+
+
+async def main():
+    # This does not introduce concurrent execution
+    # It is meant to show syntax only
+    g = [i async for i in mygen()]
+    f = [j async for j in mygen() if not (j // 3 % 5)]
+    return g, f
+
+
+g, f = asyncio.run(main())
+print(g) 
+print(f) 
+```
+
+```
+1 now sleep
+2 now sleep
+3 now sleep
+4 now sleep
+5 now sleep
+6 now sleep
+7 now sleep
+8 now sleep
+9 now sleep
+10 now sleep
+1 now sleep
+2 now sleep
+3 now sleep
+4 now sleep
+5 now sleep
+6 now sleep
+7 now sleep
+8 now sleep
+9 now sleep
+10 now sleep
+[1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+[1, 2, 16, 32, 256, 512]
+```
+결과를 보면 Event loop를 통해 비동기적으로 iterate하지 않고 동기적으로 첫번째 `async for`가 끝난 뒤, 다음 `async for`가 진행되었다.
+
+다시말하면, `asynchronous iterators`와 `asynchronous generators`는 concurrently map some function over a sequence or iterator 하도록 설계되지 않았다.
+
+
+원문을 추가하자면
+```
+This is a crucial distinction: neither asynchronous generators nor comprehensions make the iteration concurrent. 
+All that they do is provide the look-and-feel of their synchronous counterparts,
+but with the ability for the loop in question to give up control to the event loop for some other coroutine to run.
+
+In other words, asynchronous iterators and asynchronous generators are not designed to concurrently map some function over a sequence or iterator. 
+They’re merely designed to let the enclosing coroutine allow other tasks to take their turn. 
+The async for and async with statements are only needed to the extent that using plain for or with would “break” the nature of await in the coroutine. 
+This distinction between asynchronicity and concurrency is a key one to grasp.
+```
+
+## The Event Loop 와 asyncio.run()
+> asyncio.run(), introduced in Python 3.7
+
+
+1. Coroutines don’t do much on their own until they are tied to the event loop.
+2. By default, an async IO event loop runs in a single thread and on a single CPU core.
+    -  It is also possible to run event loops across multiple cores. Check out this [talk by John Reese](https://www.youtube.com/watch?v=0kXaLh8Fz3k&feature=youtu.be&t=10m30s) for more, and be warned that your laptop may spontaneously combust.
+3. Event loops are pluggable. 즉 `uvloop`같은 오픈소스로 대체해서 사용도 가능하다.
+    - asyncio 패키지의 event loop는 2가지 종류가 있다.
+        1. class asyncio.SelectorEventLoop (unix, window)
+        2. class asyncio.ProactorEventLoop (window용)
+        3. class asyncio.AbstractEventLoop (인터페이스)
+        
