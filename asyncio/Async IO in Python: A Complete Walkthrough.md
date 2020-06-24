@@ -496,3 +496,244 @@ This distinction between asynchronicity and concurrency is a key one to grasp.
         2. class asyncio.ProactorEventLoop (window용)
         3. class asyncio.AbstractEventLoop (인터페이스)
         
+## A Full Program: Asynchronous Requests
+> ./aiohttp
+
+1. Read a sequence of URLs from a local file, urls.txt.
+
+2. Send GET requests for the URLs and decode the resulting content. If this fails, stop there for a URL.
+
+3. Search for the URLs within href tags in the HTML of the responses.
+
+4. Write the results to foundurls.txt.
+
+5. Do all of the above as asynchronously and concurrently as possible. 
+    - (Use aiohttp for the requests, and aiofiles for the file-appends. These are two primary examples of IO that are well-suited for the async IO model.)
+
+```python
+# #!/usr/bin/env python3
+# # areq.py
+#
+# """Asynchronously get links embedded in multiple pages' HMTL."""
+#
+import asyncio
+import logging
+import re
+import sys
+from typing import IO
+import urllib.error
+import urllib.parse
+
+import aiofiles
+import aiohttp
+from aiohttp import ClientSession
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s:%(name)s: %(message)s",
+    level=logging.DEBUG,
+    datefmt="%H:%M:%S",
+    stream=sys.stderr,
+)
+logger = logging.getLogger("areq")
+logging.getLogger("chardet.charsetprober").disabled = True
+
+HREF_RE = re.compile(
+    r'href="(.*?)"')  # HREF_RE is a regular expression to extract what we’re ultimately searching for, href tags within HTML:
+
+
+async def fetch_html(url: str, session: ClientSession, **kwargs) -> str:
+    """GET request wrapper to fetch page HTML.
+
+    kwargs are passed to `session.request()`.
+    """
+
+    resp = await session.request(method="GET", url=url, **kwargs)
+    resp.raise_for_status()  # Raises HTTPError, if one occurred.
+    logger.info("Got response [%s] for URL: %s", resp.status, url)
+    html = await resp.text()
+    return html
+
+
+async def parse(url: str, session: ClientSession, **kwargs) -> set:
+    """Find HREFs in the HTML of `url`."""
+
+    found = set()
+    try:
+        html = await fetch_html(url=url, session=session, **kwargs)
+    except (
+            aiohttp.ClientError,
+            aiohttp.http_exceptions.HttpProcessingError,
+    ) as e:
+        logger.error(
+            "aiohttp exception for %s [%s]: %s",
+            url,
+            getattr(e, "status", None),
+            getattr(e, "message", None),
+        )
+        return found
+    except Exception as e:
+        logger.exception(
+            "Non-aiohttp exception occured:  %s", getattr(e, "__dict__", {})
+        )
+        return found
+    else:
+        for link in HREF_RE.findall(html):
+            try:
+                abslink = urllib.parse.urljoin(url, link) # 절대 경로 url 생성
+            except (urllib.error.URLError, ValueError):
+                logger.exception("Error parsing URL: %s", link)
+                pass
+            else:
+                found.add(abslink)
+        logger.info("Found %d links for %s", len(found), url)
+        return found
+
+
+async def write_one(file: IO, url: str, **kwargs) -> None:
+    """Write the found HREFs from `url` to `file`."""
+    # 만약 parse()를 좀 더 세밀한 process로 관리하고 싶다면, 자체적으로 process를 생성하거나 threadPool를 생성한뒤
+    # loop.run_in_executor()를 사용하는 것을 생각해 보아야 한다.
+    # 여기서는 pool을 생성한 뒤, await loop.run_in_executor(pool, parse, url, **kwargs) 처럼 사용가능
+    res = await parse(url=url, **kwargs)
+
+    if not res:
+        return None
+    async with aiofiles.open(file, "a") as f:
+        for p in res:
+            await f.write(f"{url}\t{p}\n")
+        logger.info("Wrote results for source URL: %s", url)
+
+
+async def bulk_crawl_and_write(file: IO, urls: set, **kwargs) -> None:
+    #     """Crawl & write concurrently to `file` for multiple `urls`."""
+    async with ClientSession() as session:
+        tasks = []
+        for url in urls:
+            tasks.append(
+                write_one(file=file, url=url, session=session, **kwargs)
+            )
+        await asyncio.gather(*tasks)
+
+
+if __name__ == "__main__":
+    import pathlib
+    import sys
+
+    assert sys.version_info >= (3, 7), "Script requires Python 3.7+."
+    here = pathlib.Path(__file__).parent
+
+    with open(here.joinpath("urls.txt")) as infile:
+        urls = set(map(str.strip, infile))  # url들의 순서 보장 x
+
+    outpath = here.joinpath("foundurls.txt")
+    with open(outpath, "w") as outfile:
+        outfile.write("source_url\tparsed_url\n")
+
+    asyncio.run(bulk_crawl_and_write(file=outpath, urls=urls))
+```
+- urls.txt에서 url을 읽어와 링크로 이동하여 GET req를 보낸뒤, resp를 받으면 이에 대한 regex(href)를 검사하고 이를 async with을 통해 foundurl.txt에 작성하는 소스코드이다. 
+
+- It uses a single session, and a task is created for each URL that is ultimately read from urls.txt.
+
+```
+$ python areq.py
+16:04:02 DEBUG:asyncio: Using selector: EpollSelector
+16:04:02 INFO:areq: Got response [200] for URL: https://1.1.1.1/
+16:04:02 INFO:areq: Found 15 links for https://1.1.1.1/
+16:04:02 INFO:areq: Wrote results for source URL: https://1.1.1.1/
+16:04:02 INFO:areq: Got response [200] for URL: https://www.github.com
+16:04:02 INFO:areq: Found 97 links for https://www.github.com
+16:04:02 INFO:areq: Wrote results for source URL: https://www.github.com
+16:04:02 INFO:areq: Got response [200] for URL: https://naver.com/
+16:04:02 INFO:areq: Found 176 links for https://naver.com/
+16:04:02 INFO:areq: Wrote results for source URL: https://naver.com/
+16:04:03 ERROR:areq: aiohttp exception for https://docs.python.org/3/this-url-will-404.html [404]: Not Found
+16:04:03 INFO:areq: Got response [200] for URL: https://www.ietf.org/rfc/rfc2616.txt
+16:04:03 INFO:areq: Found 0 links for https://www.ietf.org/rfc/rfc2616.txt
+16:04:03 INFO:areq: Got response [200] for URL: https://www.bloomberg.com/markets/economics
+16:04:03 INFO:areq: Found 3 links for https://www.bloomberg.com/markets/economics
+16:04:03 INFO:areq: Wrote results for source URL: https://www.bloomberg.com/markets/economics
+16:04:04 INFO:areq: Got response [200] for URL: https://www.politico.com/tipsheets/morning-money
+16:04:04 INFO:areq: Found 149 links for https://www.politico.com/tipsheets/morning-money
+16:04:04 INFO:areq: Wrote results for source URL: https://www.politico.com/tipsheets/morning-money
+16:04:04 INFO:areq: Got response [200] for URL: https://www.nytimes.com/guides/
+16:04:04 INFO:areq: Found 56 links for https://www.nytimes.com/guides/
+16:04:04 INFO:areq: Wrote results for source URL: https://www.nytimes.com/guides/
+
+$ wc -l foundurls.txt
+    512 foundurls.txt
+
+$ head -n 3 foundurls.txt
+source_url	parsed_url
+https://1.1.1.1/	https://www.cloudflare.com/careers/departments/
+https://1.1.1.1/	https://1.1.1.1/#subscription-form
+```
+
+코드에서 몇가지 참고해야 하는 추가적인 포인트는
+
+1. The default ClientSession has an adapter with a maximum of 100 open connections. To change that, pass an instance of asyncio.connector.TCPConnector to ClientSession. You can also specify limits on a per-host basis.
+
+2. You can specify max timeouts for both the session as a whole and for individual requests.
+
+3. This script also uses async with, which works with an asynchronous context manager. I haven’t devoted a whole section to this concept because the transition from synchronous to asynchronous context managers is fairly straightforward. The latter has to define .__aenter__() and .__aexit__() rather than .__exit__() and .__enter__(). As you might expect, async with can only be used inside a coroutine function declared with async def. 
+
+
+실력을 더욱 기르고 싶다면 [aio-redis](https://github.com/aio-libs/aioredis)를 사용해서 URLs를 track하여 recursive 하게 crawl하도록 하라.
+
+- avoid requesting them twice
+- connect links with Python’s networkx library
+
+Remember to be nice. Sending 1000 concurrent requests to a small, unsuspecting website is bad, bad, bad. There are ways to limit how many concurrent requests you’re making in one batch, such as in using the sempahore objects of asyncio or using a pattern like this one. If you don’t heed this warning, you may get a massive batch of TimeoutError exceptions and only end up hurting your own program.
+
+- [semaphore](https://stackoverflow.com/questions/40836800/python-asyncio-semaphore-in-async-await-function)
+- [concurrency with pattern](https://www.artificialworlds.net/blog/2017/05/31/python-3-large-numbers-of-tasks-with-limited-concurrency/)
+
+
+## Async IO in Context
+> Async IO를 사용해야 하는 상황들에 대하여
+
+[Thinking Outside the GIL with AsyncIO and Multiprocessing - PyCon 2018](https://www.youtube.com/watch?v=0kXaLh8Fz3k&feature=youtu.be&t=10m30s)
+
+Async IO는 다음과 같은 상황에서 option이 될 수 있다.
+
+- Multiple, fairly uniform CPU-bound tasks (a great example is a grid search in libraries such as scikit-learn or keras)
+    - grid search: 딥러닝에서 최적의 하이퍼 파라미터 조합을 검색하기 위해서 여러 파라미터값들을 조합해 가며 성능 테스트를 하는 것
+- Multiprocessing should be an obvious choice.
+- 많은 컴퓨터에서 수천 개의 스레드를 만들면 실패하므로 처음에는 시도하지 않는 것이 좋습니다. 수천 개의 비동기 IO 작업을 만드는 것은 완전히 가능합니다.
+- IO bound 작업들
+    - Network IO, whether your program is the server or the client side
+    - Serverless designs, such as a peer-to-peer, multi-user network like a group chatroom
+    - Read/write operations where you want to mimic a “fire-and-forget” style but worry less about holding a lock on whatever you’re reading and writing to
+    
+
+
+
+## async / await을 지원하는 라이브러리들
+> Libraries That Work With async/await
+
+From aio-libs:
+
+- aiohttp: Asynchronous HTTP client/server framework
+- aioredis: Async IO Redis support
+- aiopg: Async IO PostgreSQL support
+- aiomcache: Async IO memcached client
+- aiokafka: Async IO Kafka client
+- aiozmq: Async IO ZeroMQ support
+- aiojobs: Jobs scheduler for managing background tasks
+- async_lru: Simple LRU cache for async IO
+
+From magicstack:
+
+- uvloop: Ultra fast async IO event loop
+- asyncpg: (Also very fast) async IO PostgreSQL support
+
+From other hosts:
+
+- trio: Friendlier asyncio intended to showcase a radically simpler design
+- aiofiles: Async file IO
+- asks: Async requests-like http library
+- asyncio-redis: Async IO Redis support
+- aioprocessing: Integrates multiprocessing module with asyncio
+- umongo: Async IO MongoDB client
+- unsync: Unsynchronize asyncio
+- aiostream: Like itertools, but async
