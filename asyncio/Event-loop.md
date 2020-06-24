@@ -2,7 +2,7 @@
 
 ## loop 실행 방법
 
-- `loop.run()`
+- `Asyncio.run()`
     - 3.7 이후 버전에서의 Event-loop를 돌리는 방법(Single Thread 기반)
     
 - `loop.run_until_complete(future)`
