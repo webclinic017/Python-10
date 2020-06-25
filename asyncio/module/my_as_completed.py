@@ -4,8 +4,8 @@ from typing import List
 
 def my_as_completed(coros: List):
     """
-    It is roughly acting sames as as_completed()
-    but Note this is not a coroutine ( returns an iterator )
+    It is roughly acting like as_completed() which is python's Built-in method.
+    but Note that it's input type is not awaitable iterator but coroutine-list ( returns an iterator )
     """
 
     assert isinstance(coros, List)
