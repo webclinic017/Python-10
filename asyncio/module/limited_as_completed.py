@@ -55,6 +55,4 @@ async def print_when_done(tasks):
 
 if __name__ == '__main__':
     coros = (mycoro(i) for i in range(1, 101))  # Generator를 준다.
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(print_when_done(coros))
-    loop.close()
+    asyncio.run(print_when_done(coros))

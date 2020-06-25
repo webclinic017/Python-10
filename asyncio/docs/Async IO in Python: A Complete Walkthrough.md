@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
 ```
 
-![](./img/asyncio.png)
+![](../img/asyncio.png)
 
 결과를 보면 idx의 크기에 따라 sleep 시간을 길게두어 `Cyan`이 가장 높은 context change 권한을 가졌던것을 볼 수 있다.
 참고로 이야기 하면, 위의 코드는 single thread에서(엄밀하게는 main에서 동작하는 EventLoop thread도 존재할 것같다. node.js처럼) 코루틴들에 대해 권한을 바꿔가며 동작하는 concurrency한 코드이다.
