@@ -143,14 +143,9 @@ if __name__ == '__main__':
 
 - 10개 단위(limit)로 tasks들이 동작하는 것을 볼 수 있다. 
 
-## Task 갯수 제한하기 2
-> Semaphore
-
-
 
 ## next step
 
-- [asyncio.semaphore in async-await function](https://stackoverflow.com/questions/40836800/python-asyncio-semaphore-in-async-await-function)
 - [Making 100 million requests with Python aiohttp](https://www.artificialworlds.net/blog/2017/06/12/making-100-million-requests-with-python-aiohttp/)
 - [Making 1 million requests with python-aiohttp](https://pawelmhm.github.io/asyncio/python/aiohttp/2016/04/22/asyncio-aiohttp.html)
 - [Adding a concurrency limit to Python’s asyncio.as_completed](https://www.artificialworlds.net/blog/2017/06/27/adding-a-concurrency-limit-to-pythons-asyncio-as_completed/)

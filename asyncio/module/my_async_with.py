@@ -1,6 +1,8 @@
 '''
 THis is a simple implementation about pyhton async context manager.
 
+Author : Minwook Je
+
 $ python my_async_with.py
 
 ..........Enter Context..........

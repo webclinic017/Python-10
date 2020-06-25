@@ -1,4 +1,8 @@
-'''This is test code for "How async lock is act" test code'''
+"""
+This is test code for "How async lock is act" test code
+
+Author : Minwook Je
+"""
 
 import asyncio
 from random import uniform
@@ -40,8 +44,8 @@ async def worker(name, lock):
 
 async def main():
     lock = asyncio.Lock()
-    fs = [worker(f'worker{i}', lock) for i in range(4)]
-    await asyncio.wait(fs)
+    coros = [worker(f'worker{i}', lock) for i in range(4)]
+
 
 
 if __name__ == '__main__':
