@@ -74,7 +74,7 @@ async def print_when_done(tasks):
 실행시켜 보면 built-in .as_completed()와 같이 동작하는 것을 알 수 있다.
 
 ## Tasks의 갯수를 제한하는 `as_completed()`
-
+> `.islice()`
 
 ./module/limited_as_completed.py
 ```python
@@ -142,6 +142,9 @@ if __name__ == '__main__':
 ```
 
 - 10개 단위(limit)로 tasks들이 동작하는 것을 볼 수 있다. 
+
+## Task 갯수 제한하기 2
+> Semaphore
 
 
 
