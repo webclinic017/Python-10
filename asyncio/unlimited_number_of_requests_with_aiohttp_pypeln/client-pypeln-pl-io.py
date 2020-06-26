@@ -1,12 +1,12 @@
 # client-pypeln-pl-io.py
 
 from aiohttp import ClientSession, TCPConnector
-import asyncio
 import sys
 import pypeln as pl
 
 limit = 1000
-urls = ("http://localhost:8080/{}".format(i) for i in range(int(sys.argv[1])))
+base_url = "http://localhost:8080/"
+urls = (base_url + str(i) for i in range(int(sys.argv[1])))
 
 
 async def fetch(url, session):
