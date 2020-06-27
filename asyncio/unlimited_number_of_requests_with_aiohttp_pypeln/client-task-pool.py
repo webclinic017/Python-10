@@ -4,7 +4,7 @@ import sys
 from aiohttp import ClientSession, TCPConnector
 
 
-class TaskPool(object):
+class TaskPool:
 
     def __init__(self, workers):
         self._semaphore = asyncio.Semaphore(workers)
@@ -13,7 +13,7 @@ class TaskPool(object):
     async def put(self, coro):
         await self._semaphore.acquire()
 
-        task = asyncio.ensure_future(coro)
+        task = asyncio.create_task(coro)
         self._tasks.add(task)
         task.add_done_callback(self._on_task_done)
 
@@ -31,9 +31,6 @@ class TaskPool(object):
         return self.join()
 
 
-limit = 1000
-
-
 async def fetch(url, session):
     async with session.get(url) as response:
         return await response.read()
@@ -45,7 +42,10 @@ async def _main(url, total_requests):
         for i in range(total_requests):
             await tasks.put(fetch(url.format(i), session))
 
+        # async with block종료(__aexit__) 되는 시점에 tasks들을 gather한다.
 
+
+limit = 1000
 url = "http://localhost:8080/{}"
 loop = asyncio.get_event_loop()
 loop.run_until_complete(_main(url, int(sys.argv[1])))
