@@ -31,3 +31,19 @@ $ pytest --markers # custom markers의 설명들을 볼 수 있다.
 ```bash
 pytest . -s # stdout print
 ```
+
+## cov
+
+```bash
+pip install pytest-html
+pytest --html="report.html"  # html
+
+pytest --junitxml="report.xml" # for jenkins ci
+```
+
+- xml을 활용해 jenkins에 연동하는 방법
+
+![](./assets/1.png)
+![](./assets/2.png)
+![](./assets/3.png)
+
