@@ -25,3 +25,9 @@ $ pytest --markers # custom markers의 설명들을 볼 수 있다.
 
 @pytest.mark.entertainment: All tests covering the entertainments system
 ```
+
+## fixture
+
+```bash
+pytest . -s # stdout print
+```
