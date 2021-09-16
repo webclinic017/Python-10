@@ -47,3 +47,6 @@ pytest --junitxml="report.xml" # for jenkins ci
 ![](./assets/2.png)
 ![](./assets/3.png)
 
+## cli
+
+
