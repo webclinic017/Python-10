@@ -128,3 +128,6 @@ python_files = test_*
 
 ## parallel
 
+- pip install pytest-xdist
+- pytest --numprocesses auto
+  - process 갯수에 맞게 병렬 실행된다.
