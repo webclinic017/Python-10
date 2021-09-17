@@ -1,15 +1,21 @@
 # pytest
-> https://www.udemy.com/course/elegant-automation-frameworks-with-python-and-pytest
+> [udemy 강좌](https://www.udemy.com/course/elegant-automation-frameworks-with-python-and-pytest)
 
+pytest 기능 각각을 주제로 소스코드를 추가함.
 
-- smoke test
-  - 핵심 feature를 테스트하는 suite
-  - @mark.smoke를 만들면 좋을 듯
+- [marker](./mark)
+- [cli](./cli)
+- [fixture](./fixture)
+- [tox](./tox-example)
+- [parameterize](./parameterize)
+- [parallel](./parallel)
 
 ## marker
 
 - custom marker의 경우 pytest.ini에 설명을 추가해주어야 warning이 뜨지 않는다.
-
+- smoke test?
+  - 핵심 feature를 테스트하는 suite
+  - @mark.smoke를 만들면 좋을 듯
 
 ```bash
 $ pytest -v # verbose
@@ -29,16 +35,15 @@ $ pytest --markers # custom markers의 설명들을 볼 수 있다.
 ## fixture
 
 ```bash
-pytest . -s # stdout print
+$ pytest . -s # stdout print
 ```
 
 ## cov
 
 ```bash
-pip install pytest-html
-pytest --html="report.html"  # html
-
-pytest --junitxml="report.xml" # for jenkins ci
+$ pip install pytest-html
+$ pytest --html="report.html"  # html
+$ pytest --junitxml="report.xml" # for jenkins ci
 ```
 
 - xml을 활용해 jenkins에 연동하는 방법
@@ -52,7 +57,8 @@ pytest --junitxml="report.xml" # for jenkins ci
 - `@fixture(autouse=True)`를 활용해서, 동적으로 fixture에 맞게 skip을 할 수 있다.
 
 ```bash
-pytest --phase=sdb
+$ pytest --phase=sdb
+
 ===================================================================================== test session starts ======================================================================================
 platform darwin -- Python 3.8.6, pytest-6.2.3, py-1.10.0, pluggy-0.13.1 -- /Users/kakao/.pyenv/versions/3.8.6/bin/python3.8
 cachedir: .pytest_cache
@@ -69,6 +75,9 @@ test_phase.py::test_phase_is_production SKIPPED (skipped on this phase: sdb)
 - json 파일을 load해서 parameterize 할 수 있다.
 - decorator / fixture 형식으로 parameterize를 줄 수 있다.
 ```bash
+$ tox
+
+... 중략 ...
 test_company.py::test_company_with_decorator_param[naver] PASSED           [  8%]
 test_company.py::test_company_with_decorator_param[kakao] PASSED           [ 16%]
 test_company.py::test_company_with_decorator_param[microsoft] PASSED       [ 25%]
@@ -118,3 +127,4 @@ python_files = test_*
 ```
 
 ## parallel
+
