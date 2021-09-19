@@ -1,7 +1,7 @@
 # Python 
 > python expert
 
-- [pytest](./pytest/README.md)
+- [pytest](./pytest/)
   - fixture, mark, skipif
   - selenium
   - tox
